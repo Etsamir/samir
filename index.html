@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Pro Tile Calc (Dark)</title>
+    <style>
+        /* === ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ (ЦВЕТА) === */
+        :root {
+            --bg-body: #121212; /* Очень темный фон */
+            --bg-card: #1e1e1e; /* Чуть светлее для карты */
+            --bg-input: #2c2c2c; /* Фон для полей ввода */
+            
+            --text-primary: #e0e0e0; /* Светло-серый текст */
+            --text-secondary: #aaaaaa; /* Более темный текст */
+            
+            --accent-gold: #ffc107; /* Золотой акцент для заголовков */
+            --accent-blue: #2196f3; /* Голубой для активных полей */
+            --accent-green: #4caf50; /* Зеленый для финальных цифр */
+            --accent-red: #ef5350; /* Красный для предупреждений (если будут) */
+            
+            --border-color: #3d3d3d; /* Цвет границ */
+            --shadow-card: 0 8px 30px rgba(0,0,0,0.5); /* Глубокая тень */
+        }
+
+        /* === БАЗОВЫЕ СТИЛИ === */
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent; /* Убирает блик при нажатии на iOS */
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* === КАРТОЧКА КАЛЬКУЛЯТОРА === */
+        .calc-card {
+            background-color: var(--bg-card);
+            width: 100%;
+            max-width: 480px;
+            border-radius: 24px;
+            box-shadow: var(--shadow-card);
+            padding: 30px;
+            border: 1px solid #2a2a2a; /* Едва заметная граница */
+        }
+
+        /* === ШАПКА === */
+        .card-header {
+            text-align: center;
+            margin-bottom: 30px;
+            position: relative;
+        }
+        
+        .card-header::after {
+            content: '';
+            display: block;
+            width: 60px;
+            height: 4px;
+            background-color: var(--accent-gold);
+            border-radius: 2px;
+            margin: 10px auto 0;
+        }
+
+        h2 {
+            color: var(--accent-gold);
+            margin: 0;
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            text-transform: uppercase;
+        }
+        
+        .shop-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 5px;
+            display: block;
+            letter-spacing: 1px;
+        }
+
+        /* === ВВОД ДАННЫХ === */
+        .input-section {
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        .input-group:last-child {
+            margin-bottom: 0;
+        }
+
+        label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+        
+        label svg {
+            width: 16px;
+            height: 16px;
+            fill: var(--text-secondary);
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        input {
+            width: 100%;
+            padding: 16px 20px;
+            background-color: var(--bg-input);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            font-size: 18px;
+            color: var(--text-primary);
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            background-color: #333;
+            box-shadow: 0 0 0 4px rgba(33, 150, 243, 0.1);
+        }
+        
+        /* Изменение цвета labels при фокусе инпута */
+        .input-group:focus-within label {
+            color: var(--accent-blue);
+        }
+        .input-group:focus-within label svg {
+            fill: var(--accent-blue);
+        }
+
+        .row {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .row .input-group {
+            flex: 1;
+        }
+
+        /* === РЕЗУЛЬТАТЫ === */
+        .results-section {
+            border-top: 2px dashed var(--border-color);
+            padding-top: 25px;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #2a2a2a;
+        }
+        
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .result-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .result-value {
+            font-weight: 600;
+            font-size: 16px;
+            color: var(--text-primary);
+        }
+
+        /* === ГЛАВНЫЙ БЛОК (РЕКОМЕНДАЦИЯ) === */
+        .recommendation-box {
+            background-color: rgba(76, 175, 80, 0.05); /* Очень слабый зеленый фон */
+            border: 2px solid var(--accent-green);
+            border-radius: 16px;
+            padding: 20px;
+            margin-top: 20px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.1);
+        }
+
+        .rec-header {
+            font-size: 13px;
+            color: var(--accent-green);
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .rec-header svg {
+            width: 14px;
+            height: 14px;
+            fill: var(--accent-green);
+        }
+
+        .rec-value {
+            font-size: 42px;
+            font-weight: 900;
+            color: var(--accent-green);
+            line-height: 1;
+            letter-spacing: -1px;
+        }
+        
+        .rec-subtext {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 5px;
+        }
+
+        /* === БЛОК ЦЕНЫ === */
+        .price-box {
+            margin-top: 15px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 15px;
+            display: none; /* Скрыто по умолчанию */
+        }
+        
+        .price-label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .price-value {
+            font-size: 28px;
+            color: var(--accent-gold);
+            font-weight: 800;
+            display: block;
+        }
+
+        /* Адаптация для совсем маленьких экранов */
+        @media (max-width: 360px) {
+            .calc-card {
+                padding: 20px;
+            }
+            h2 {
+                font-size: 22px;
+            }
+            .rec-value {
+                font-size: 36px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="calc-card">
+        <header class="card-header">
+            <h2>Pro Tile Calc</h2>
+            <span class="shop-label">ПРОФЕССИОНАЛЬНЫЙ РАСЧЕТ КАФЕЛЯ</span>
+        </header>
+        
+        <div class="input-section">
+            <div class="row">
+                <div class="input-group">
+                    <label>
+                        <svg viewBox="0 0 24 24"><path d="M19 12H5V10H19V12M19 16H5V14H19V16M19 8H5V6H19V8Z"/></svg>
+                        Длина (см)
+                    </label>
+                    <div class="input-wrapper">
+                        <input type="number" id="tileLength" value="30" oninput="calculate()" placeholder="30">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>
+                        <svg viewBox="0 0 24 24" style="transform: rotate(90deg);"><path d="M19 12H5V10H19V12M19 16H5V14H19V16M19 8H5V6H19V8Z"/></svg>
+                        Ширина (см)
+                    </label>
+                    <div class="input-wrapper">
+                        <input type="number" id="tileWidth" value="30" oninput="calculate()" placeholder="30">
+                    </div>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>
+                    <svg viewBox="0 0 24 24"><path d="M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z"/></svg>
+                    Площадь укладки (кв. м)
+                </label>
+                <div class="input-wrapper">
+                    <input type="number" id="totalArea" value="27" oninput="calculate()" placeholder="Например: 27">
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>
+                    <svg viewBox="0 0 24 24"><path d="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4M11,17V16H9V14H13V13H10A2,2 0 0,1 8,11V9A2,2 0 0,1 10,7H11V6H13V7H15V9H11V10H14A2,2 0 0,1 16,12V14A2,2 0 0,1 14,16H13V17H11Z"/></svg>
+                    Цена за 1 кв.м (сум) <span style="font-weight:normal;color:#666;margin-left:5px;">(опц.)</span>
+                </label>
+                <div class="input-wrapper">
+                    <input type="number" id="priceSqm" value="" oninput="calculate()" placeholder="Например: 85000">
+                </div>
+            </div>
+        </div>
+
+        <div class="results-section">
+            <div class="result-item">
+                <span class="result-label">1 плитка = </span>
+                <span class="result-value" id="outTileArea">0.09 кв.м</span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">Точно нужно:</span>
+                <span class="result-value" id="outExactTiles">300 шт</span>
+            </div>
+            
+            <div class="recommendation-box">
+                <div class="rec-header">
+                    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                    КЛИЕНТУ НУЖНО ПРОДАТЬ
+                </div>
+                <div class="rec-value" id="outReserveTiles">330 шт</div>
+                <div class="rec-subtext">(с запасом 10% на подрезку)</div>
+                
+                <div class="price-box" id="priceContainer">
+                    <span class="price-label">ИТОГО К ОПЛАТЕ:</span>
+                    <span class="price-value" id="outTotalPrice">0 сум</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function calculate() {
+            // Получаем значения из полей
+            const lengthStr = document.getElementById('tileLength').value;
+            const widthStr = document.getElementById('tileWidth').value;
+            const areaStr = document.getElementById('totalArea').value;
+            const priceStr = document.getElementById('priceSqm').value;
+
+            // Конвертируем в числа (или 0, если пусто)
+            const length = parseFloat(lengthStr) || 0;
+            const width = parseFloat(widthStr) || 0;
+            const area = parseFloat(areaStr) || 0;
+            const price = parseFloat(priceStr) || 0;
+
+            // Сброс результатов, если основные данные не введены
+            if (length <= 0 || width <= 0 || area <= 0) {
+                document.getElementById('outTileArea').innerText = "0 кв.м";
+                document.getElementById('outExactTiles').innerText = "0 шт";
+                document.getElementById('outReserveTiles').innerText = "0 шт";
+                document.getElementById('priceContainer').style.display = "none";
+                return;
+            }
+
+            // Основные расчеты
+            const tileAreaSqm = (length / 100) * (width / 100); // Площадь одной плитки в м2
+            const exactTiles = Math.ceil(area / tileAreaSqm);    // Точное количество (округление вверх)
+            const reserveTiles = Math.ceil(exactTiles * 1.10);  // Количество с 10% запасом (округление вверх)
+            
+            // Вывод базовых результатов
+            // Используем formatFractionDigits, чтобы не показывать лишние нули (например 0.09 вместо 0.0900)
+            document.getElementById('outTileArea').innerText = tileAreaSqm.toLocaleString('ru-RU', { maximumFractionDigits: 6 }) + " кв.м";
+            
+            // Добавляем разделение тысяч для удобства (например 1 200 шт)
+            document.getElementById('outExactTiles').innerText = exactTiles.toLocaleString('ru-RU') + " шт";
+            document.getElementById('outReserveTiles').innerText = reserveTiles.toLocaleString('ru-RU') + " шт";
+
+            // Расчет и вывод цены
+            if (price > 0) {
+                // Считаем общую квадратуру, которую клиент РЕАЛЬНО покупает (плитки с запасом)
+                const totalSqmToBuy = reserveTiles * tileAreaSqm;
+                const totalPrice = totalSqmToBuy * price;
+                
+                // Форматируем цену: 1 250 000 UZS
+                // Мы округляем копейки вверх для простоты
+                const formattedPrice = new Intl.NumberFormat('ru-RU').format(Math.ceil(totalPrice));
+                
+                document.getElementById('outTotalPrice').innerText = formattedPrice + " UZS";
+                document.getElementById('priceContainer').style.display = "block";
+            } else {
+                // Если цена не введена, скрываем блок
+                document.getElementById('priceContainer').style.display = "none";
+            }
+        }
+        
+        // Запускаем расчет один раз при загрузке, чтобы показать начальные значения
+        calculate();
+    </script>
+</body>
+</html>
