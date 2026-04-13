@@ -20,7 +20,7 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            z-index: -1; 
+            z-index: -2; 
             overflow: hidden;
             background-color: #000; 
         }
@@ -133,7 +133,6 @@
         .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .account-name { font-size: 19px; font-weight: 800; letter-spacing: 0.5px; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
         
-        /* Narx va O'chirish tugmasi yonma-yon turishi uchun */
         .price-container { display: flex; align-items: center; gap: 10px; }
 
         .account-price { 
@@ -147,7 +146,6 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.2);
         }
 
-        /* O'chirish tugmasi dizayni (qizil oyna) */
         .delete-btn {
             background: rgba(255, 0, 0, 0.2);
             border: 1px solid rgba(255, 0, 0, 0.4);
@@ -163,11 +161,7 @@
             backdrop-filter: blur(5px);
             transition: all 0.3s;
         }
-        .delete-btn:hover {
-            background: rgba(255, 0, 0, 0.6);
-            color: #fff;
-            transform: scale(1.1);
-        }
+        .delete-btn:hover { background: rgba(255, 0, 0, 0.6); color: #fff; transform: scale(1.1); }
         
         .account-info { 
             font-weight: 600; 
@@ -214,6 +208,79 @@
         .active .account-desc-text { display: block; animation: fadeIn 0.4s ease; }
         .active .arrow { transform: rotate(180deg); }
 
+        /* ====== YANGI: MAXSUS OYNALAR (MODALLAR) ====== */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 1000;
+            display: none; /* Boshida yashiringan */
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: rgba(30, 30, 30, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 25px;
+            padding: 30px 25px;
+            width: 100%;
+            max-width: 350px;
+            text-align: center;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+            animation: modalPop 0.3s ease-out;
+        }
+
+        .modal-content h3 { margin-bottom: 10px; font-size: 22px; }
+        .modal-content p { color: #ccc; font-size: 14px; margin-bottom: 20px; }
+        
+        .modal-content input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            background: rgba(0,0,0,0.4);
+            color: #fff;
+            outline: none;
+            text-align: center;
+            font-size: 16px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .modal-buttons button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-cancel { background: rgba(255, 255, 255, 0.1); color: #fff; }
+        .btn-cancel:hover { background: rgba(255, 255, 255, 0.2); }
+        
+        .btn-ok { background: #007AFF; color: #fff; }
+        .btn-ok:hover { background: #0056b3; }
+
+        .btn-delete { background: #ff4d4d; color: #fff; }
+        .btn-delete:hover { background: #cc0000; }
+
+        @keyframes modalPop {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(-5px); }
             to { opacity: 1; transform: translateY(0); }
@@ -225,6 +292,29 @@
 
     <div class="video-bg">
         <video src="fon.mp4" autoplay loop muted playsinline></video>
+    </div>
+
+    <div class="modal-overlay" id="loginModal">
+        <div class="modal-content glass">
+            <h3>Tizimga kirish</h3>
+            <p>Admin panelga kirish uchun maxfiy kodni kiriting.</p>
+            <input type="password" id="loginInput" placeholder="Kodni kiriting...">
+            <div class="modal-buttons">
+                <button class="btn-cancel" onclick="closeLoginModal()">Bekor qilish</button>
+                <button class="btn-ok" onclick="checkLogin()">Kirish</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="deleteModal">
+        <div class="modal-content glass">
+            <h3>Diqqat!</h3>
+            <p>Haqiqatan ham bu akkauntni butunlay o'chirib tashlamoqchimisiz?</p>
+            <div class="modal-buttons">
+                <button class="btn-cancel" onclick="closeDeleteModal()">Yo'q, qolsin</button>
+                <button class="btn-delete" id="confirmDeleteBtn">Ha, o'chirish</button>
+            </div>
+        </div>
     </div>
 
     <div class="header glass">
@@ -268,22 +358,59 @@
         ];
 
         let accounts = JSON.parse(localStorage.getItem('accounts')) || defaultAccounts;
-        
-        // Yangi: Foydalanuvchi admin yoki yo'qligini saqlaydigan o'zgaruvchi
         let isAdmin = false; 
+        let accountToDeleteId = null; // O'chiriladigan akkaunt ID sini vaqtincha saqlash uchun
 
         window.onload = function() {
             renderAccounts(accounts);
+            // Sayt yuklanganda maxsus login oynasini ochamiz
             setTimeout(() => {
-                let ism = prompt("Saytga xush kelibsiz! Ismingiz yoki maxfiy kodni kiriting:");
-                if (ism === "8106") {
-                    isAdmin = true; // Admin rejimini yoqish
-                    document.getElementById("adminPanel").style.display = "block";
-                    renderAccounts(accounts); // Admin tugmalari ko'rinishi uchun qayta yuklash
-                }
+                document.getElementById('loginModal').style.display = 'flex';
+                document.getElementById('loginInput').focus();
             }, 500);
         };
 
+        // --- LOGIN MODAL FUNKSIYALARI ---
+        function checkLogin() {
+            let kiritilganKod = document.getElementById('loginInput').value;
+            if (kiritilganKod === "8106") {
+                isAdmin = true;
+                document.getElementById("adminPanel").style.display = "block";
+                renderAccounts(accounts);
+            }
+            closeLoginModal();
+        }
+
+        function closeLoginModal() {
+            document.getElementById('loginModal').style.display = 'none';
+        }
+
+        // --- O'CHIRISH MODALI FUNKSIYALARI ---
+        function askDelete(id) {
+            accountToDeleteId = id; // Qaysi ID ni o'chirishni eslab qolamiz
+            document.getElementById('deleteModal').style.display = 'flex';
+            
+            // "Ha, o'chirish" tugmasiga shu ID ni bog'laymiz
+            document.getElementById('confirmDeleteBtn').onclick = function() {
+                confirmDelete();
+            };
+        }
+
+        function closeDeleteModal() {
+            accountToDeleteId = null;
+            document.getElementById('deleteModal').style.display = 'none';
+        }
+
+        function confirmDelete() {
+            if (accountToDeleteId !== null) {
+                accounts = accounts.filter(acc => acc.id !== accountToDeleteId);
+                localStorage.setItem('accounts', JSON.stringify(accounts));
+                renderAccounts(accounts);
+            }
+            closeDeleteModal(); // O'chirib bo'lgach oynani yopish
+        }
+
+        // --- ASOSIY FUNKSIYALAR ---
         function formatTelegramLink(tg) {
             if (!tg) return '';
             if (tg.includes('t.me/')) return tg.startsWith('http') ? tg : 'https://' + tg;
@@ -308,9 +435,9 @@
                     ? `<a href="${tgLink}" target="_blank" class="telegram-btn">Sotuvchiga yozish (Telegram)</a>`
                     : '';
 
-                // Yangi: Agar foydalanuvchi Admin bo'lsa, o'chirish tugmasini tayyorlash
+                // O'chirish tugmasi endi maxsus oynani chaqiradi (askDelete)
                 const deleteBtnHtml = isAdmin 
-                    ? `<button class="delete-btn" onclick="deleteAccount(${acc.id})" title="Akkauntni o'chirish">❌</button>`
+                    ? `<button class="delete-btn" onclick="askDelete(${acc.id})" title="Akkauntni o'chirish">❌</button>`
                     : '';
 
                 card.innerHTML = `
@@ -339,20 +466,6 @@
                 `;
                 list.appendChild(card);
             });
-        }
-
-        // Yangi: Akkauntni o'chirish funksiyasi
-        function deleteAccount(id) {
-            if(confirm("Haqiqatan ham bu akkauntni butunlay o'chirib tashlamoqchimisiz?")) {
-                // Berilgan ID ga teng bo'lmaganlarini qoldirib, qolganini o'chirish
-                accounts = accounts.filter(acc => acc.id !== id);
-                
-                // O'zgarishni brauzer xotirasiga saqlash
-                localStorage.setItem('accounts', JSON.stringify(accounts));
-                
-                // Ekranni yangilash
-                renderAccounts(accounts);
-            }
         }
 
         function searchAccounts() {
