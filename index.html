@@ -10,30 +10,29 @@
         body { 
             color: #ffffff; 
             min-height: 100vh;
-            /* Yozuvlar yaxshi o'qilishi uchun butun sayt ustiga yengil qora parda */
             background-color: rgba(0, 0, 0, 0.4); 
         }
 
-        /* ORQA FON VIDEOSI UCHUN CSS */
+        /* ORQA FON VIDEOSI */
         .video-bg {
             position: fixed;
             top: 0;
             left: 0;
             width: 100vw;
             height: 100vh;
-            z-index: -1; /* Videoni barcha narsaning orqasiga o'tkazish */
+            z-index: -1; 
             overflow: hidden;
-            background-color: #000; /* Video yuklanguncha qora fon chiqib turadi */
+            background-color: #000; 
         }
 
         .video-bg video {
             width: 100%;
             height: 100%;
-            object-fit: cover; /* Videoni ekranga to'liq moslash */
-            opacity: 0.8; /* Video juda yorug' bo'lsa, biroz xiralashtiradi */
+            object-fit: cover; 
+            opacity: 0.8; 
         }
         
-        /* SHISHA EFFEKTI (Glassmorphism) */
+        /* SHISHA EFFEKTI */
         .glass {
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(20px);
@@ -42,7 +41,6 @@
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
         }
 
-        /* Qidiruv (Header) qismi */
         .header { 
             padding: 20px; 
             border-bottom-left-radius: 35px; 
@@ -71,7 +69,6 @@
         
         .container { padding: 0 20px 20px 20px; max-width: 500px; margin: 0 auto; }
         
-        /* Admin Panel */
         .admin-panel { 
             border-radius: 25px; 
             padding: 25px; 
@@ -112,7 +109,6 @@
         }
         .admin-panel button:hover { transform: scale(0.98); }
         
-        /* Karta (Card) */
         .card { 
             border-radius: 25px; 
             margin-bottom: 25px; 
@@ -174,6 +170,26 @@
             text-shadow: 0 1px 2px rgba(0,0,0,0.8);
         }
 
+        /* TELEGRAM TUGMASI DIZAYNI */
+        .telegram-btn {
+            display: block;
+            text-align: center;
+            background: rgba(0, 136, 204, 0.3); /* Telegram ko'k rangi oynadak qilingan */
+            border: 1px solid rgba(0, 136, 204, 0.6);
+            color: #fff;
+            padding: 10px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: bold;
+            margin-top: 15px;
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+        }
+        .telegram-btn:hover {
+            background: rgba(0, 136, 204, 0.6);
+            transform: scale(0.98);
+        }
+
         .active .account-desc-text { display: block; animation: fadeIn 0.4s ease; }
         .active .arrow { transform: rotate(180deg); }
 
@@ -208,6 +224,10 @@
             <input type="text" id="addName" placeholder="Akkaunt nomi">
             <textarea id="addDesc" rows="3" placeholder="Opisaniyasi (AK-47 bor...)"></textarea>
             <input type="text" id="addPrice" placeholder="Narxi (masalan: 90.000)">
+            
+            <label>Akkaunt egasi (Telegram):</label>
+            <input type="text" id="addTelegram" placeholder="Havola yoki username (masalan: @username)">
+
             <button onclick="processAccount()">Bozorga Qo'shish</button>
         </div>
 
@@ -221,7 +241,8 @@
                 video: "1.mp4", 
                 name: "Gold Akkaunt", 
                 desc: "Bu mening birinchi videoyim. Ichida AK-47 va noyob pichoq bor. Narxi kelishiladi.", 
-                price: "90.000 UZS" 
+                price: "90.000 UZS",
+                telegram: "t.me/durov" // Namuna telegram
             }
         ];
 
@@ -237,6 +258,14 @@
             }, 500);
         };
 
+        function formatTelegramLink(tg) {
+            if (!tg) return '';
+            // Agar link to'liq yozilmagan bo'lsa, aqlli to'g'rilaydi
+            if (tg.includes('t.me/')) return tg.startsWith('http') ? tg : 'https://' + tg;
+            if (tg.startsWith('@')) return 'https://t.me/' + tg.substring(1);
+            return 'https://t.me/' + tg;
+        }
+
         function renderAccounts(data) {
             const list = document.getElementById('accountsList');
             list.innerHTML = '';
@@ -248,6 +277,12 @@
                 const videoHtml = acc.video 
                     ? `<video src="${acc.video}" controls autoplay muted loop playsinline></video>` 
                     : `Videofayl topilmadi`;
+
+                // Telegram tugmasini tayyorlash
+                const tgLink = formatTelegramLink(acc.telegram);
+                const telegramHtml = tgLink 
+                    ? `<a href="${tgLink}" target="_blank" class="telegram-btn">Sotuvchiga yozish (Telegram)</a>`
+                    : '';
 
                 card.innerHTML = `
                     <div class="video-placeholder">
@@ -264,7 +299,10 @@
                             <span class="arrow">▼</span>
                         </div>
                         
-                        <div class="account-desc-text">${acc.desc}</div>
+                        <div class="account-desc-text">
+                            ${acc.desc}
+                            ${telegramHtml}
+                        </div>
                     </div>
                 `;
                 list.appendChild(card);
@@ -285,6 +323,7 @@
             const name = document.getElementById('addName').value;
             const desc = document.getElementById('addDesc').value;
             const price = document.getElementById('addPrice').value;
+            const telegram = document.getElementById('addTelegram').value;
 
             if (name === "" || price === "") {
                 alert("Iltimos, akkaunt nomini va narxini yozing!");
@@ -296,16 +335,19 @@
                 video: videoName,
                 name: name,
                 desc: desc,
-                price: price
+                price: price,
+                telegram: telegram
             };
 
             accounts.unshift(newAccount);
             localStorage.setItem('accounts', JSON.stringify(accounts));
             
+            // Maydonlarni tozalash
             document.getElementById('addVideoName').value = '';
             document.getElementById('addName').value = '';
             document.getElementById('addDesc').value = '';
             document.getElementById('addPrice').value = '';
+            document.getElementById('addTelegram').value = '';
 
             renderAccounts(accounts);
         }
