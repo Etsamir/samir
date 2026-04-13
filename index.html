@@ -208,7 +208,7 @@
         .active .account-desc-text { display: block; animation: fadeIn 0.4s ease; }
         .active .arrow { transform: rotate(180deg); }
 
-        /* ====== YANGI: MAXSUS OYNALAR (MODALLAR) ====== */
+        /* ====== MAXSUS OYNALAR (MODALLAR) ====== */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -219,7 +219,7 @@
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
             z-index: 1000;
-            display: none; /* Boshida yashiringan */
+            display: none; 
             align-items: center;
             justify-content: center;
             padding: 20px;
@@ -237,7 +237,7 @@
             animation: modalPop 0.3s ease-out;
         }
 
-        .modal-content h3 { margin-bottom: 10px; font-size: 22px; }
+        .modal-content h3 { margin-bottom: 20px; font-size: 22px; }
         .modal-content p { color: #ccc; font-size: 14px; margin-bottom: 20px; }
         
         .modal-content input {
@@ -296,12 +296,11 @@
 
     <div class="modal-overlay" id="loginModal">
         <div class="modal-content glass">
-            <h3>Tizimga kirish</h3>
-            <p>Admin panelga kirish uchun maxfiy kodni kiriting.</p>
-            <input type="password" id="loginInput" placeholder="Kodni kiriting...">
+            <h3>Ismingizni kriting.</h3>
+            <input type="text" id="loginInput" placeholder="Ism kritish...">
             <div class="modal-buttons">
                 <button class="btn-cancel" onclick="closeLoginModal()">Bekor qilish</button>
-                <button class="btn-ok" onclick="checkLogin()">Kirish</button>
+                <button class="btn-ok" onclick="checkLogin()">Saqlash</button>
             </div>
         </div>
     </div>
@@ -359,11 +358,10 @@
 
         let accounts = JSON.parse(localStorage.getItem('accounts')) || defaultAccounts;
         let isAdmin = false; 
-        let accountToDeleteId = null; // O'chiriladigan akkaunt ID sini vaqtincha saqlash uchun
+        let accountToDeleteId = null;
 
         window.onload = function() {
             renderAccounts(accounts);
-            // Sayt yuklanganda maxsus login oynasini ochamiz
             setTimeout(() => {
                 document.getElementById('loginModal').style.display = 'flex';
                 document.getElementById('loginInput').focus();
@@ -373,11 +371,13 @@
         // --- LOGIN MODAL FUNKSIYALARI ---
         function checkLogin() {
             let kiritilganKod = document.getElementById('loginInput').value;
+            // Agar kiritilgan ism joyiga maxfiy parol yozilsa, admin panel ochiladi
             if (kiritilganKod === "8106") {
                 isAdmin = true;
                 document.getElementById("adminPanel").style.display = "block";
                 renderAccounts(accounts);
             }
+            // Ism saqlangandan so'ng (yoki bekor qilinganda) oynani yopamiz
             closeLoginModal();
         }
 
@@ -387,10 +387,9 @@
 
         // --- O'CHIRISH MODALI FUNKSIYALARI ---
         function askDelete(id) {
-            accountToDeleteId = id; // Qaysi ID ni o'chirishni eslab qolamiz
+            accountToDeleteId = id; 
             document.getElementById('deleteModal').style.display = 'flex';
             
-            // "Ha, o'chirish" tugmasiga shu ID ni bog'laymiz
             document.getElementById('confirmDeleteBtn').onclick = function() {
                 confirmDelete();
             };
@@ -407,7 +406,7 @@
                 localStorage.setItem('accounts', JSON.stringify(accounts));
                 renderAccounts(accounts);
             }
-            closeDeleteModal(); // O'chirib bo'lgach oynani yopish
+            closeDeleteModal(); 
         }
 
         // --- ASOSIY FUNKSIYALAR ---
@@ -435,7 +434,6 @@
                     ? `<a href="${tgLink}" target="_blank" class="telegram-btn">Sotuvchiga yozish (Telegram)</a>`
                     : '';
 
-                // O'chirish tugmasi endi maxsus oynani chaqiradi (askDelete)
                 const deleteBtnHtml = isAdmin 
                     ? `<button class="delete-btn" onclick="askDelete(${acc.id})" title="Akkauntni o'chirish">❌</button>`
                     : '';
